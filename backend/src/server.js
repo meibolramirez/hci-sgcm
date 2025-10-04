@@ -36,6 +36,25 @@ app.post('/api/pacientes', async (req, res) => {
   }
 })
 
+// Pacientes (buscar por email ?email=)
+app.get('/api/pacientes', async (req, res) => {
+  const { email } = req.query
+  if (email) {
+    const p = await prisma.paciente.findFirst({ where: { email } })
+    return res.json(p || null)
+  }
+  const data = await prisma.paciente.findMany()
+  res.json(data)
+})
+
+// Paciente por id
+app.get('/api/pacientes/:id', async (req, res) => {
+  const id = Number(req.params.id)
+  const p = await prisma.paciente.findUnique({ where: { id } })
+  if (!p) return res.status(404).json({ error: 'No encontrado' })
+  res.json(p)
+})
+
 /* --- Doctores --- */
 app.get('/api/doctores', async (_, res) => {
   const data = await prisma.doctor.findMany()
@@ -43,12 +62,20 @@ app.get('/api/doctores', async (_, res) => {
 })
 
 /* --- Citas --- */
-app.get('/api/citas', async (_, res) => {
-  const data = await prisma.cita.findMany({
-    include: { paciente: true, doctor: true },
-    orderBy: { id: 'desc' },
-  })
-  res.json(data)
+app.get('/api/citas', async (req, res) => {
+  try {
+    const { pacienteId } = req.query
+    const where = pacienteId ? { pacienteId: Number(pacienteId) } : {}
+    const data = await prisma.cita.findMany({
+      where,
+      include: { paciente: true, doctor: true },
+      orderBy: { id: 'desc' },
+    })
+    res.json(data)
+  } catch (e) {
+    console.error('GET /api/citas error:', e)
+    res.status(500).json({ error: 'Server error' })
+  }
 })
 
 app.post('/api/citas', async (req, res) => {
