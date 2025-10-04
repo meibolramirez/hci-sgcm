@@ -1,0 +1,14 @@
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+.DS_Store
+
+# Backend (Prisma, SQLite local)
+Backend/prisma/dev.db
+Backend/prisma/dev.db-journal
+
+# Entornos
+.env
+.env.*
